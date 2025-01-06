@@ -1,76 +1,88 @@
 java c
 ECE5550: Applied Kalman Filtering 
-THE LINEAR KALMAN FILTER
-4.1: Introduction 
-■ The principal goal of this course   is to   learn   how to   estimate   the
-present hidden state   (vector) value of   a dynamic   system,   using   noisy   measurements that are somehow related to that state   (vector).
-■ We assume a general, possibly   nonlinear,   model
-xk = fk−1(xk−1, uk−1,wk−1)
-z k = hk (xk, uk ,vk ),
-where uk is a   known   (deterministic/measured) input signal,   wk is   a            process-noise random input, and vk is a   sensor-noise   random   input.
-SEQUENTIAL PROBABILISTIC INFERENCE: Estimate the present state xk of a dynamic system using   all   measurements Zk = {z0   , z 1   ,   ···   , z k }   .
+NONLINEAR KALMAN FILTERS 
+6.1: Extended Kalman ﬁlters 
+■ We return to the basic problem of   estimating the   present   hidden   state   (vector) value of a dynamic system, using   noisy   measurements that            are somehow related to that state   (vector).
+■ We   now examine the   nonlinear case, with system dynamics xk = fk−1(xk−1, uk−1,wk−1)
+z k = hk (xk, uk,vk ),
+where uk is a known   (deterministic/measured) input   signal,wk is   a            process-noise random input, and vk is a   sensor-noise   random   input.
+■ There are three basic nonlinear   generalizations to   KF
+• Extended Kalman ﬁlter (EKF): Analytic linearization of the   model at   each point   in time.   Problematic, but   still   popular.
+• Sigma-point (Unscented) Kalman ﬁlter (SPKF/UKF): Statistical/ empirical linearization of the   model at each   point   in time.   Much      better than   EKF, at same computational complexity.
+• Particle ﬁlters :   The   most precise, but often thousands of   times   more computations required than either   EKF/SPKF.   Directly
+approximates the   integrals required to compute f (xk |   Zk )   using   Monte-Carlo integration techniques.
+■ In this chapter, we   present the   EKF   and   SPKF.
+The Extended Kalman Filter (EKF) 
+■ The   EKF   makes two simplifying assumptions when adapting the   general sequential inference equations to a   nonlinear system:
+•   In computing state estimates,   EKF assumes E[fn(x)] ≈ fn(E[x]);
+•   In computing covariance estimates,   EKF uses Taylor series to
+linearize the system equations around the present operating   point.
+■ Here, we will show how to   apply these   approximations   and
+assumptions to derive the   EKF equations from the general six steps.
+EKF step 1a: State estimate   time   update.
+■ The state prediction step   is approximated as
+ˆ(x)   = E[fk−1(xk−1   , uk−1,wk−1)   |   Zk−1]
+≈ fk−1(ˆ(x)1   , uk−1   ,   ¯(w)k−1),
+where   ¯(w)k−1    = E[wk−1].   (Often,¯(w)k−1    = 0.)
+■ That is, we approximate the expected value of the state   by   assuming
+it is   reasonable to propagateˆ(x)1    and¯(w)k−1    through 代 写ECE5550: Applied Kalman Filtering NONLINEAR KALMAN FILTERSJava
+代做程序编程语言the state eqn.
+EKF step 1b: Error covariance time   update.
+■ The covariance prediction   step is accomplished   by   ﬁrst   making   an
+approximation for˜(x)   .
+x˜k− = xk − ˆxk−
+= fk−1(xk−1, uk−1, wk−1) − fk−1(xˆk+−1, uk−1, w¯ k−1).
+■ The ﬁrst term is expanded as a   Taylor   series   around   the   prior
+operating “point” which is the set of   values   {ˆ(x)1   , uk−1   ,   ¯(w)k−1}
 
-■ This notes chapter provides a   uniﬁed theoretic framework to develop   a family of estimators for this task:   particle ﬁlters,   Kalman ﬁlters, extended   Kalman ﬁlters, sigma-point (unscented)   Kalman ﬁlters. . .
-A smattering of estimation theory 
-■ There are various approaches to “optimal estimation” of some   unknown quantity x .
-■ One says that we would like to   minimize the expected   magnitude
-(length) of the error vector between x and the   estimatex(ˆ) .
 
-■ This turns out to be the   median of   the a posteriori pdf f (x |   Z).
-■ A similar   result, but easier   to derive   analytically   minimizes the   expected length squared of that   error   vector.
-■ This is the   minimum mean square   error   (MMSE)   estimator
+Deﬁned   as k —   1
 
-■ We solve forx(ˆ) by differentiating the cost function and   setting   the
-result to   zero
+一一 
+Deﬁned   as k —   1
+■ k— ≈ ( k—1k(十)—1 十 ).
+■ Substituting this to ﬁnd the predicted covariance:
 
-■ Another approach to estimation is to   optimize a   likelihood   function
+≈ k—1Σ,k — 1 k(T)— 1 十 k—1k(T)— 1   .
+■ Note, by the   chain   rule   of   total   differentials,
 
-■ Yet a fourth is the   maximum a posteriori estimate
 
-■ In   general,x(^)MME      /=x(^)MMSE      /=x(^)ML      /=x(^)MAP   ,   so   which   is “best”? 
-■ Answer:   It probably depends on the   application.
-■ The text gives some metrics for comparison:   bias,   MSE,   etc.
-■ Here, we usex(^)MMSE    = E[x |   Z] because it “makes sense” and works
-well in a   lot of   applications   and   is   mathematically tractable.
-Some examples 
-■ In example   1,   mean,   median, and   mode are   identical.   Any   of these   statistics would   make a good estimator of x .
-■ In example 2,   mean,   median, and   mode   are   all different.   Which to   ch代 写ECE5550: Applied Kalman Filtering THE LINEAR KALMAN FILTERJava
-代做程序编程语言oose is   not   necessarily obvious.
-■ In example 3, the distribution   is   multi-modal.   None   of the   estimates   is   likely to   be satisfactory!
 
-4.2: Developing the framework 
-■ The   Kalman ﬁlter applies the   MMSE estimation criteria to a   dynamic   system.   That is, our state estimate   is the   conditional   mean
 
-where Rxk is the set comprising the   range   of   possible xk .
-■ To   make progress toward implementing this estimator, we must   break f (xk |   Zk ) into   simpler   pieces.
-■ We ﬁrst   use   Bayes’ rule to write:
 
-■ We then break up Zk into smaller   constituent   parts   within   the joint   probabilities as Zk−1    and z k 
+0
 
-■ Thirdly, we   use   the   joint   probability   rule f (a , b)   = f (a | b)f (b) on   the numerator and denominator terms
+0
 
-■ Next, we apply   Bayes’   rule once again   in the terms   within the   [         ]
+■ Similarly,
 
-■ We   now cancel some terms from   numerator and denominator
-■ Finally, recognize that zk is conditionally   independent   of   Zk−1    given xk 
+■ The distinction between the total differential and the   partial differential   is   not critical at this   point,   but will   be   when   we   look   at   parameter
+estimation using extended   Kalman ﬁlters.
+EKF step 1c: Output estimate   (where k = E[vk ]).
+■ The system output is   estimated to   be
+k = E[hk (xk, uk,vk )   |   Zk —   1] ≈ hk (^(x)k— , uk,   v-k ).■ That is, it is assumed that propagating xˆk− and the mean sensor noise is the best approximation to estimating the output.
+EKF step 2a: Estimator gain   matrix.
+■ The output prediction error   may then be   approximated
 
-■ So, overall, we   have shown that
 
-KEY POINT #1: This shows that we can compute the desired density   recursively with two steps per   iteration:
-■ The ﬁrst step computes probability densities for predicting xk given   all past   observations
+using again a Taylor-series expansion on the ﬁrst   term.
+z k ≈ hk (^(x)k— , uk,   v-k )
 
-■ The second step updates the   prediction via
+■ Note,   much   like we saw   in   Step   1b,
 
-■ Therefore, the general sequential inference solution breaks   naturally into a   prediction/update scenario.
-■ To proceed further using this approach, the   relevant   probability   densities may be   computed   as
 
-KEY POINT #2: Closed-form. solutions to solving the   multi-dimensional   integrals is   intractable for   most real-world systems.
-■ For applications that justify the computational expense, the   integrals   may be approximated using   Monte Carlo   methods   (particle ﬁlters).
-■ But, besides applications using particle ﬁlters, this   approach   appears   to be   a   dead   end.
-KEY POINT #3: A simpliﬁed solution   may   be obtained   if we   are willing to
-make the assumption that all probability densities are Gaussian.
-■ This is the basis of the   original   Kalman ﬁlter,   the   extended   Kalman
-ﬁlter, and the sigma-point (unscented) Kalman ﬁlters to   be   discussed.
+■ From this, we can compute such necessary   quantities   as
+
+z˜,k ≈ˆCk −˜x,kˆCkT +ˆDk v˜ˆDkT,−˜x˜z,k
+≈ E[(x˜k−(ˆCk x˜k−ˆDkv˜k)T ] =  x−˜,kˆCkT .
+■ These terms may be combined to   get the   Kalman gain
+Lk =    −˜ x, kCkT 	 Cˆk x−˜,kCˆTk+ Dˆk v˜ DˆTk−1.
+EKF step 2b: State estimate   measurement   update.
+■ The ﬁfth step   is to compute the a posteriori state estimate by   updating the a priori estimate
+^(x)k(十) =   ^(x)k— 十 Lk (z k — k ).
+EKF step 2c: Error covariance measurement   update.
+■ Finally, the   updated covariance is   computed   as
++˜ x, k = −˜ x, k − Lk z˜ , kLkT = (I − Lk ˆ Ck)x−˜ , k.
 
 
 
